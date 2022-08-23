@@ -4,11 +4,9 @@ inputs:
   python-version:
     description: 'List the python versions eg. [3.8]'
     required: true
-    default: [3.8]
   poetry-version:
     description: 'List the poetry versions eg. [1.1.12]'
     required: true
-    default: [1.1.12]
 runs:
   using: "composite"
   steps:
