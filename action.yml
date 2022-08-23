@@ -28,13 +28,11 @@ runs:
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       run: poetry install
 
-    # Validate Schema
-    - name: Validate template input schema's
+    # Build
+    - name: Validate input schema's
       run: |
           poetry run ./nornir/nr_validate_schema.py
-
-    # Build
-    - name: Render config from templates
+    - name: Generate device config
       run: |
           mkdir -p nornir/output/ ;
           poetry run ./nornir/nr_build_config.py
@@ -44,11 +42,11 @@ runs:
         path: nornir/output
 
     # Deploy pre-test
-    - name: Deploy Pre-Test - Create Batfish snapshot
+    - name: Create Batfish snapshot
       run: |
           mkdir -p snapshot/configs ;
           cp backups/* snapshot/configs ;
-    - name: Deploy Pre-Test - Batfish
+    - name: Run Batfish tests
       run: |
           pip install pybatfish pytest python-dotenv
           pytest -vvv --tb=short tests/pre_test/001_pre_test.py --disable-pytest-warnings
@@ -58,13 +56,11 @@ runs:
       with:
         name: generated-configs
         path: nornir/output
-    - name: Display structure of downloaded files
-      run: ls -R
-    - name: Deploy - Deploy config to network
+    - name: Deploy to network
       run: |
         poetry run ./nornir/nr_deploy.py
 
     # Deploy post-test
-    - name: Deply Post-Test - Post-test network
+    - name: Run SuzieQ tests
       run: |
         poetry run pytest -vvv tests/post_test/001_post_test.py
