@@ -7,9 +7,11 @@ runs:
 
     # Build
     - name: Validate input schema's
+      shell: bash
       run: |
           poetry run ./nornir/nr_validate_schema.py
     - name: Generate device config
+      shell: bash
       run: |
           mkdir -p nornir/output/ ;
           poetry run ./nornir/nr_build_config.py
