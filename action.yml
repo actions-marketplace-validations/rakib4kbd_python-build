@@ -13,3 +13,7 @@ runs:
       run: |
           mkdir -p nornir/output/ ;
           poetry run ./nornir/nr_build_config.py
+    - uses: actions/upload-artifact@v3
+      with:
+        name: generated-configs
+        path: nornir/output
