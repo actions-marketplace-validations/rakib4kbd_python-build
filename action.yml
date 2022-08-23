@@ -1,30 +1,9 @@
 name: 'Validate, Build, Test and Deploy'
 description: 'Validate, Build, Test and Deploy python poetry project'
-inputs:
-  python-version:
-    description: 'List the python versions eg. [3.8]'
-    required: true
-  poetry-version:
-    description: 'List the poetry versions eg. [1.1.12]'
-    required: true
+
 runs:
   using: "composite"
   steps:
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      id: cache
-      env:
-        AGENT_TOOLSDIRECTORY: ${{ runner.tool_cache }}
-      with:
-        python-version: ${{ inputs.python-version }}
-        cache: 'poetry'
-    - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.0.0
-      with:
-        poetry-version: ${{ inputs.poetry-version }}
-    - name: Install dependencies
-      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-      run: poetry install
 
     # Build
     - name: Validate input schema's
@@ -34,31 +13,3 @@ runs:
       run: |
           mkdir -p nornir/output/ ;
           poetry run ./nornir/nr_build_config.py
-    - uses: actions/upload-artifact@v3
-      with:
-        name: generated-configs
-        path: nornir/output
-
-    # Deploy pre-test
-    - name: Create Batfish snapshot
-      run: |
-          mkdir -p snapshot/configs ;
-          cp backups/* snapshot/configs ;
-    - name: Run Batfish tests
-      run: |
-          pip install pybatfish pytest python-dotenv
-          pytest -vvv --tb=short tests/pre_test/001_pre_test.py --disable-pytest-warnings
-
-    # Deploy
-    - uses: actions/download-artifact@v3
-      with:
-        name: generated-configs
-        path: nornir/output
-    - name: Deploy to network
-      run: |
-        poetry run ./nornir/nr_deploy.py
-
-    # Deploy post-test
-    - name: Run SuzieQ tests
-      run: |
-        poetry run pytest -vvv tests/post_test/001_post_test.py
